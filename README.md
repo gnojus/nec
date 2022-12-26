@@ -6,7 +6,7 @@ for sharing files. At this point in time it's very experimental and not well tes
 Installation
 ------------
 Download prebuilt binaries on [releases](https://github.com/gnojus/nec/releases)
-or build with `go get github.com/gnojus/nec@latest`.
+or build with `go install github.com/gnojus/nec@latest`.
 
 Usage
 -----
