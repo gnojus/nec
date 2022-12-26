@@ -11,10 +11,13 @@ type account struct {
 	user, pass, url string
 }
 
-func request[T any](s *account, method string, v url.Values, sub ...string) (T, error) {
+// request performs a http request with data of given account. v is passed
+// as url-encoded and paths are joined with request path.
+// Received result is umarshalled into T.
+func request[T any](s *account, method string, v url.Values, path ...string) (T, error) {
 	var r response[T]
-	sub = append([]string{"ocs/v2.php/apps/files_sharing/api/v1/shares"}, sub...)
-	URL, err := url.JoinPath(s.url, sub...)
+	path = append([]string{"ocs/v2.php/apps/files_sharing/api/v1/shares"}, path...)
+	URL, err := url.JoinPath(s.url, path...)
 	if err != nil {
 		return r.Data, fmt.Errorf("creating share url: %w", err)
 	}

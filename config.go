@@ -26,17 +26,19 @@ type pathDetails struct {
 }
 
 type pathConfig struct {
-	Path string `arg:"" help:"file on local filesystem to be shared"`
+	Path string `arg:"" help:"file on local filesystem"`
 	pathDetails
 }
 
+// optPathConfig is like pathConfig, but the Path is optional.
+// If Path is empty, it looks for a single account to match.
 type optPathConfig struct {
-	Path string `arg:"" optional:"" help:"file on local filesystem to be shared"`
+	Path string `arg:"" optional:"" help:"file on local filesystem. Empty matches all files"`
 	pathDetails
 }
 
 func (c *optPathConfig) AfterApply() error {
-	err := (*pathConfig)(c).readCheck(true)
+	err := (*pathConfig)(c).readConfig(true)
 	if err != nil {
 		return fmt.Errorf("reading config: %w", err)
 	}
@@ -44,7 +46,7 @@ func (c *optPathConfig) AfterApply() error {
 }
 
 func (c *pathConfig) AfterApply() (err error) {
-	err = c.readCheck(false)
+	err = c.readConfig(false)
 	if err != nil {
 		return fmt.Errorf("reading config: %w", err)
 	}
@@ -57,7 +59,7 @@ func (c *pathConfig) AfterApply() (err error) {
 	return nil
 }
 
-func (c *pathConfig) readCheck(opt bool) error {
+func (c *pathConfig) readConfig(opt bool) error {
 	if c.Path != "" {
 		p, err := filepath.EvalSymlinks(c.Path)
 		if err != nil {
@@ -75,7 +77,6 @@ func (c *pathConfig) readCheck(opt bool) error {
 }
 
 func (c *pathConfig) read(opt bool) error {
-
 	f, err := ini.Load(filepath.Join(xdg.ConfigHome, "Nextcloud", "nextcloud.cfg"))
 	if err != nil {
 		return err

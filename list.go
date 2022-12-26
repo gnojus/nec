@@ -12,7 +12,7 @@ import (
 type list struct {
 	optPathConfig
 
-	Recursive bool `short:"r" help:"print the shares recursively on folder"`
+	Recursive bool `short:"r" help:"print the shares recursively on a folder"`
 }
 
 func (l *list) Run() error {
@@ -40,8 +40,12 @@ func (l *list) Run() error {
 	return w.Flush()
 }
 
+// loadShares loads and returns all shared files that matches path from command
+// line. Empty path matches shared files.
 func (l *list) loadShares() ([]sharedFile, error) {
 	v := url.Values{}
+
+	// recursive query needs to fetch the whole list
 	if !l.Recursive && l.remoteFile != "" {
 		v.Set("path", l.remoteFile)
 	}
@@ -52,6 +56,7 @@ func (l *list) loadShares() ([]sharedFile, error) {
 
 	pos := 0
 	for i, e := range data.Elements {
+		// filter out non matching recursive elements
 		if l.Recursive && !strings.HasPrefix(e.Path, l.remoteFile) {
 			continue
 		}

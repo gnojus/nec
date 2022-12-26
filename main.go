@@ -7,9 +7,22 @@ import (
 	"github.com/alecthomas/kong"
 )
 
+const description = `
+nec is a command line tool for Nextcloud
+`
+
 func main() {
 	var cli cli
-	err := kong.Parse(&cli).Run()
+
+	err := kong.Parse(&cli,
+		kong.ConfigureHelp(kong.HelpOptions{
+			FlagsLast:           true,
+			Compact:             true,
+			NoExpandSubcommands: false,
+		}),
+		kong.Description(description),
+		kong.UsageOnError(),
+	).Run()
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "Error:", err)
 		os.Exit(1)
