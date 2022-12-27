@@ -15,7 +15,11 @@ import (
 )
 
 func openConfig() (*os.File, error) {
-	return os.Open(filepath.Join(xdg.ConfigHome, "Nextcloud", "nextcloud.cfg"))
+	p, err := xdg.SearchConfigFile(filepath.Join("Nextcloud", "nextcloud.cfg"))
+	if err != nil {
+		return nil, fmt.Errorf("locating config file: %w", err)
+	}
+	return os.Open(p)
 }
 
 type pathDetails struct {
