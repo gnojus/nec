@@ -7,19 +7,30 @@ on:
   workflow_dispatch:
 
 jobs:
-  build-linux-windows:
-    runs-on: ubuntu-latest
+  build-and-release:
     strategy:
       matrix:
-        goos: [linux, windows]
+        goos: [linux, windows, darwin]
         goarch: ["386", amd64, arm64]
         exclude:
+          - goarch: "386"
+            goos: darwin
           - goarch: arm64
             goos: windows
-          
+        include:
+          - goos: darwin
+            os: macos-latest
+            cgo: 1
+          - goos: linux
+            os: ubuntu-latest
+          - goos: windows
+            os: ubuntu-latest
+            suffix: .exe
+    runs-on: ${{ matrix.os }}          
     env:
       GOOS: ${{ matrix.goos }}
       GOARCH: ${{ matrix.goarch }}
+      CGO_ENABLED: ${{ matrix.cgo }}
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-go@v3
@@ -27,12 +38,39 @@ jobs:
           go-version: stable
 
       - name: Build
-        run: go build -v -o nec-$GOOS-$GOOARCH
+        run: go build -v -o nec-$GOOS-$GOARCH${{ matrix.suffix }}
+
       - name: Release
         uses: softprops/action-gh-release@v1
         with:
           files: nec-*-*
           tag_name: build_test
+#   build-macos:
+#     runs-on: macos-latest
+#     strategy:
+#       matrix:
+#         goos: [darwin]
+#         goarch: ["386", amd64, arm64]
+#         exclude:
+#           - goarch: arm64
+#             goos: windows
+          
+#     env:
+#       GOOS: ${{ matrix.goos }}
+#       GOARCH: ${{ matrix.goarch }}
+#     steps:
+#       - uses: actions/checkout@v3
+#       - uses: actions/setup-go@v3
+#         with:
+#           go-version: stable
+
+#       - name: Build
+#         run: go build -v -o nec-$GOOS-$GOARCH
+#       - name: Release
+#         uses: softprops/action-gh-release@v1
+#         with:
+#           files: nec-*-*
+#           tag_name: build_test
 #       - name: Upload
 #         uses: actions/upload-artifact@v3
 #         with:
