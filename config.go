@@ -42,23 +42,25 @@ type optPathConfig struct {
 }
 
 func (c *optPathConfig) AfterApply() error {
-	err := (*pathConfig)(c).readConfig(true)
-	if err != nil {
-		return fmt.Errorf("reading config: %w", err)
-	}
-	return nil
+	return (*pathConfig)(c).loadHook(true)
 }
 
 func (c *pathConfig) AfterApply() (err error) {
-	err = c.readConfig(false)
+	return c.loadHook(false)
+}
+
+func (c *pathConfig) loadHook(opt bool) (err error) {
+	err = c.readConfig(opt)
 	if err != nil {
 		return fmt.Errorf("reading config: %w", err)
 	}
-	rel, err := filepath.Rel(c.localPath, c.Path)
-	if err != nil {
-		return fmt.Errorf("making path: %w", err)
+	if c.Path != "" {
+		rel, err := filepath.Rel(c.localPath, c.Path)
+		if err != nil {
+			return fmt.Errorf("making path: %w", err)
+		}
+		c.remoteFile = path.Join(c.targetPath, filepath.ToSlash(rel))
 	}
-	c.remoteFile = path.Join(c.targetPath, filepath.ToSlash(rel))
 
 	return nil
 }
@@ -81,11 +83,17 @@ func (c *pathConfig) readConfig(opt bool) error {
 }
 
 func (c *pathConfig) read(opt bool) error {
-	f, err := ini.Load(filepath.Join(xdg.ConfigHome, "Nextcloud", "nextcloud.cfg"))
+	f, err := openConfig()
 	if err != nil {
 		return err
 	}
-	acc := f.Section("Accounts")
+	defer f.Close()
+	cfg, err := ini.Load(f)
+	if err != nil {
+		return err
+	}
+
+	acc := cfg.Section("Accounts")
 	if acc.Name() == "" {
 		return fmt.Errorf("no Accounts section in config")
 	}
@@ -94,7 +102,8 @@ func (c *pathConfig) read(opt bool) error {
 		id := strconv.Itoa(i) + `\`
 		url, user := acc.Key(id+"url").String(), acc.Key(id+"dav_user").String()
 		if url == "" || user == "" {
-			if i == 1 && opt {
+			// return just user data if path is empty and optional
+			if i == 1 && opt && c.Path == "" {
 				return c.fetchPassword(0)
 			}
 			return fmt.Errorf("no matching account found")

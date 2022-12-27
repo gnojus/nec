@@ -14,6 +14,10 @@ nec is a command line tool for Nextcloud
 func main() {
 	var cli cli
 
+	if len(os.Args) == 1 {
+		os.Args = append(os.Args, "--help")
+	}
+
 	err := kong.Parse(&cli,
 		kong.ConfigureHelp(kong.HelpOptions{
 			FlagsLast:           true,
@@ -21,7 +25,6 @@ func main() {
 			NoExpandSubcommands: false,
 		}),
 		kong.Description(description),
-		kong.UsageOnError(),
 	).Run()
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "Error:", err)
