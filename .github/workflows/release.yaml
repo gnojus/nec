@@ -1,11 +1,11 @@
 on:
   release:
     types: [created]
+  workflow_dispatch:
 
 jobs:
   releases-matrix:
     name: Build and upload binaries
-    runs-on: ubuntu-latest
     strategy:
       matrix:
         goos: [linux, windows, darwin]
@@ -15,9 +15,21 @@ jobs:
             goos: darwin
           - goarch: arm64
             goos: windows
+        include:
+          - goos: darwin
+            os: macos-latest
+            cgo: 1
+          - goos: linux
+            os: ubuntu-latest
+          - goos: windows
+            os: ubuntu-latest
+          
+    runs-on: ${{ matrix.os }}
     steps:
     - uses: actions/checkout@v3
     - uses: wangyoucao577/go-release-action@v1.34
+      env:
+        CGO_ENABLED: ${{ matrix.cgo }}
       with:
         github_token: ${{ secrets.GITHUB_TOKEN }}
         goos: ${{ matrix.goos }}
