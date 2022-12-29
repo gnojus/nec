@@ -1,16 +1,26 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"net/url"
+	"os"
+	"strings"
+	"time"
 
 	"github.com/atotto/clipboard"
+	"github.com/olebedev/when"
 )
 
 type share struct {
 	pathConfig
 
-	Clipboard bool `short:"c" help:"copy share url into system's clipboard"`
+	Clipboard bool   `short:"c" help:"copy share url into system's clipboard"`
+	Expire    string `optional:"" help:"expire date of this share"`
+}
+
+func fmtExpiry(expiry string) string {
+	return strings.TrimSuffix(expiry, " 00:00:00")
 }
 
 func (s *share) Run() error {
@@ -18,9 +28,23 @@ func (s *share) Run() error {
 	v.Set("shareType", "3") // public link
 	v.Set("path", s.remoteFile)
 
+	if s.Expire != "" {
+		res, err := when.EN.Parse(s.Expire, time.Now())
+		if err != nil {
+			return fmt.Errorf("parsing time: %w", err)
+		}
+		if res == nil {
+			return errors.New("failed to parse expire time")
+		}
+		v.Set("expireDate", res.Time.Format(time.RFC3339))
+	}
+
 	data, err := request[sharedFile](&s.account, "POST", v)
 	if err != nil {
 		return err
+	}
+	if data.Expiration != "" {
+		fmt.Fprintln(os.Stderr, "share expires on:", fmtExpiry(data.Expiration))
 	}
 
 	fmt.Println(data.URL)

@@ -33,7 +33,7 @@ func (l *list) Run() error {
 
 		fmt.Fprintf(w, "%s\t%s\t", e.ID, e.URL)
 		if e.Expiration != "" {
-			fmt.Fprintf(w, "\t%s", e.Expiration)
+			fmt.Fprintf(w, "\t%s", fmtExpiry(e.Expiration))
 		}
 		fmt.Fprintln(w)
 	}
