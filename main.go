@@ -39,8 +39,8 @@ var debug = false
 
 type cli struct {
 	Share   share   `kong:"cmd,aliases=s,help='share a local file'"`
-	Unshare unshare `cmd:"" aliases:"us" help:"unshare a local file"`
-	List    list    `cmd:"" aliases:"ls" help:"list shares of local files"`
+	Unshare unshare `kong:"cmd,aliases=us,help='unshare a local file'"`
+	List    list    `kong:"cmd,aliases=ls,help='list shares of local files'"`
 
 	Debug bool `kong:"hidden"`
 }

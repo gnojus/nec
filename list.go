@@ -12,7 +12,7 @@ import (
 type list struct {
 	optPathConfig
 
-	Recursive bool `short:"r" help:"print the shares recursively on a folder"`
+	Recursive bool `kong:"short=r,help='print the shares recursively on a folder'"`
 }
 
 func (l *list) Run() error {

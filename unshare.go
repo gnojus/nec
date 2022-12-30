@@ -8,7 +8,7 @@ import (
 type unshare struct {
 	list
 
-	ID string `help:"id of share to remove"`
+	ID string `kong:"help='id of share to remove'"`
 }
 
 func (u *unshare) Run() error {
