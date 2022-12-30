@@ -3,8 +3,10 @@ package main
 import (
 	"encoding/xml"
 	"fmt"
+	"io"
 	"net/http"
 	"net/url"
+	"os"
 )
 
 type account struct {
@@ -35,6 +37,10 @@ func request[T any](s *account, method string, v url.Values, path ...string) (T,
 		return r.Data, fmt.Errorf("calling api: %w", err)
 	}
 	defer resp.Body.Close()
+	if debug {
+		fmt.Fprintln(os.Stderr, "server response:")
+		resp.Body = io.NopCloser(io.TeeReader(resp.Body, os.Stderr))
+	}
 
 	err = xml.NewDecoder(resp.Body).Decode(&r)
 	if err != nil {
