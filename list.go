@@ -31,10 +31,10 @@ func (l *list) Run() error {
 			fmt.Fprintf(w, "%s\t", filepath.Join(l.Path, filepath.FromSlash(relRemote)))
 		}
 
-		fmt.Fprintf(w, "%s\t%s\t", e.ID, e.URL)
-		if e.Expiration != "" {
-			fmt.Fprintf(w, "\t%s", fmtExpiry(e.Expiration))
-		}
+		fmt.Fprintf(w, "%s\t%s", e.ID, e.fmtUrl(l.url))
+		fmt.Fprintf(w, "\t%s", fmtExpiry(e.Expiration))
+		fmt.Fprintf(w, "\t%s", e.fmtNote())
+
 		fmt.Fprintln(w)
 	}
 	return w.Flush()

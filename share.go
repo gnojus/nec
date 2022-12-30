@@ -15,8 +15,14 @@ import (
 type share struct {
 	pathConfig
 
-	Clipboard bool   `short:"c" help:"copy share url into system's clipboard"`
-	Expire    string `optional:"" help:"expire date of this share"`
+	Clipboard bool   `kong:"help='copy share url into systems clipboard',short=c"`
+	Expire    string `kong:"help='expire date of this share'"`
+	Note      string `kong:"help='note displayed together with the shared file'"`
+	With      string `kong:"help='user to share with',xor=to"`
+	WithGroup string `kong:"help='group to share with',xor=to"`
+	Email     string `kong:"help='send email with shared file to this email',xor=to"`
+	Edit      bool   `kong:"help='edit permission on the shared file'"`
+	Upload    bool   `kong:"help='allow uploads to folder using public link'"`
 }
 
 func fmtExpiry(expiry string) string {
@@ -27,6 +33,22 @@ func (s *share) Run() error {
 	v := url.Values{}
 	v.Set("shareType", "3") // public link
 	v.Set("path", s.remoteFile)
+	v.Set("note", s.Note)
+
+	if s.Email != "" {
+		v.Set("shareType", "4") // email
+		v.Set("shareWith", s.Email)
+	}
+
+	if s.With != "" {
+		v.Set("shareType", "0") // user
+		v.Set("shareWith", s.With)
+	}
+
+	if s.WithGroup != "" {
+		v.Set("shareType", "1") // user
+		v.Set("shareWith", s.WithGroup)
+	}
 
 	if s.Expire != "" {
 		res, err := when.EN.Parse(s.Expire, time.Now())
@@ -39,6 +61,13 @@ func (s *share) Run() error {
 		v.Set("expireDate", res.Time.Format(time.RFC3339))
 	}
 
+	if s.Edit {
+		v.Set("permissions", "15")
+	}
+	if s.Upload {
+		v.Set("publicUpload", "true")
+	}
+
 	data, err := request[sharedFile](&s.account, "POST", v)
 	if err != nil {
 		return err
@@ -47,7 +76,9 @@ func (s *share) Run() error {
 		fmt.Fprintln(os.Stderr, "share expires on:", fmtExpiry(data.Expiration))
 	}
 
-	fmt.Println(data.URL)
+	if s.With == "" && s.WithGroup == "" {
+		fmt.Println(data.fmtUrl(s.url))
+	}
 	if s.Clipboard {
 		return clipboard.WriteAll(data.URL)
 	}
@@ -57,7 +88,7 @@ func (s *share) Run() error {
 type sharedFile struct {
 	Text                 string `xml:",chardata"`
 	ID                   string `xml:"id"`
-	ShareType            string `xml:"share_type"`
+	ShareType            int    `xml:"share_type"`
 	UidOwner             string `xml:"uid_owner"`
 	DisplaynameOwner     string `xml:"displayname_owner"`
 	Permissions          string `xml:"permissions"`
@@ -89,4 +120,34 @@ type sharedFile struct {
 	MailSend             string `xml:"mail_send"`
 	HideDownload         string `xml:"hide_download"`
 	Attributes           string `xml:"attributes"`
+}
+
+func (s *sharedFile) fmtUrl(serverUrl string) string {
+	if s.URL != "" || s.Token == "" {
+		return s.URL
+	}
+	// TODO: this may not work on servers without rewrite rules
+	p, _ := url.JoinPath(serverUrl, "s", s.Token)
+	return p
+}
+
+func (s *sharedFile) fmtNote() string {
+	note := s.Note
+	suffix := ""
+	switch s.ShareType {
+	case 0:
+		suffix = "user"
+	case 1:
+		suffix = "group"
+	case 4:
+		suffix = "email"
+	}
+
+	if suffix != "" {
+		if note != "" {
+			note += ", "
+		}
+		note = note + suffix + ": " + s.ShareWith
+	}
+	return note
 }
