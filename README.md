@@ -13,7 +13,8 @@ Usage
 nec is intended to be zero-configuration tool. This means that it works alongside
 official [Nextcloud desktop client](https://github.com/nextcloud/desktop/). It parses
 the existing configuration and operates on the folders of local filesystem, synced
-with server. nec is made to be cross-platform, but only tested on KDE with kwallet.
+with server. nec is made to be cross-platform, tested on Mac OS, Windows and linux.
+Linux works at least on KDE with kwallet and other libsecret backends.
 
 
 ### Commands
@@ -30,4 +31,6 @@ client.
       share (s)       share a local file
       unshare (us)    unshare a local file
       list (ls)       list shares of local files
+
+    Run "nec <command> --help" for more information on a command.
 
