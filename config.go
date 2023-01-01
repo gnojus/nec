@@ -6,7 +6,7 @@ import (
 	"os"
 	"path"
 	"path/filepath"
-	"strconv"
+	"regexp"
 	"strings"
 
 	"github.com/adrg/xdg"
@@ -98,24 +98,17 @@ func (c *pathConfig) read(opt bool) error {
 		return fmt.Errorf("no Accounts section in config")
 	}
 
-	for i := 0; ; i++ {
-		id := strconv.Itoa(i) + `\`
-		url, user := acc.Key(id+"url").String(), acc.Key(id+"dav_user").String()
-		if url == "" || user == "" {
-			// return just user data if path is empty and optional
-			if i == 1 && opt && c.Path == "" {
-				return c.fetchPassword(0)
-			}
-			return fmt.Errorf("no matching account found")
-		}
-		c.url = url
-		c.user = user
-		for j := 1; ; j++ {
-			folder := id + `Folders\` + strconv.Itoa(j) + `\`
-			if !acc.HasKey(folder + "localPath") {
-				break
-			}
+	ids := findFolders(acc.KeyStrings())
+	for id, folders := range ids {
+		c.url, c.user = acc.Key(id+`\url`).String(), acc.Key(id+`\dav_user`).String()
 
+		// return just user data if path is empty and optional
+		if c.Path == "" && len(ids) == 1 && opt {
+			return c.fetchPassword(id)
+		}
+
+		for _, f := range folders {
+			folder := id + `\Folders\` + f + `\`
 			lpath, err := acc.GetKey(folder + "localPath")
 			if err != nil {
 				return err
@@ -128,16 +121,31 @@ func (c *pathConfig) read(opt bool) error {
 			c.localPath = filepath.Clean(lpath.String())
 			if c.localPath != "" && strings.HasPrefix(c.Path, c.localPath) {
 				c.targetPath = tpath.String()
-				return c.fetchPassword(i)
+				return c.fetchPassword(id)
 			}
 		}
 	}
 
+	return fmt.Errorf("no matching account found")
 }
 
-func (c *pathConfig) fetchPassword(id int) error {
+func (c *pathConfig) fetchPassword(id string) error {
 	var err error
-	key := fmt.Sprintf("%s:%s/:%d", c.user, c.url, id)
+	key := fmt.Sprintf("%s:%s/:%s", c.user, c.url, id)
 	c.pass, err = keyring.ReadPassword("Nextcloud", "nec", key)
 	return err
+}
+
+var rFolder = regexp.MustCompile(`([0-9]+)\\Folders\\([0-9]+)\\localPath`)
+
+func findFolders(keys []string) map[string][]string {
+	f := make(map[string][]string)
+	for _, key := range keys {
+		m := rFolder.FindStringSubmatch(key)
+		if m != nil {
+			f[m[1]] = append(f[m[1]], m[2])
+		}
+	}
+
+	return f
 }
