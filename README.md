@@ -6,14 +6,15 @@ for sharing files. At this point in time it's very experimental and not well tes
 Installation
 ------------
 Download prebuilt binaries on [releases](https://github.com/gnojus/nec/releases)
-or build with `go install github.com/gnojus/nec@latest`.
+or build with `go install github.com/gnojus/nec@latest`. Note that CGO
+(`CGO_ENABLED=1`) is required to build with keychain support for Mac OS.
 
 Usage
 -----
 nec is intended to be zero-configuration tool. This means that it works alongside
 official [Nextcloud desktop client](https://github.com/nextcloud/desktop/). It parses
 the existing configuration and operates on the folders of local filesystem, synced
-with server. nec is made to be cross-platform, tested on Mac OS, Windows and linux.
+with server. nec is made to be cross-platform, tested on Mac OS, Windows and Linux.
 Linux works at least on KDE with kwallet and other libsecret backends.
 
 
