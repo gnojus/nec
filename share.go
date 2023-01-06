@@ -29,6 +29,10 @@ func fmtExpiry(expiry string) string {
 	return strings.TrimSuffix(expiry, " 00:00:00")
 }
 
+func (s *share) Help() string {
+	return "long\nhelp"
+}
+
 func (s *share) Run() error {
 	v := url.Values{}
 	v.Set("shareType", "3") // public link
@@ -77,7 +81,7 @@ func (s *share) Run() error {
 	}
 
 	if s.With == "" && s.WithGroup == "" {
-		fmt.Println(data.fmtUrl(s.url))
+		fmt.Println(data.fmtShareLink(s.url))
 	}
 	if s.Clipboard {
 		return clipboard.WriteAll(data.URL)
@@ -122,7 +126,7 @@ type sharedFile struct {
 	Attributes           string `xml:"attributes"`
 }
 
-func (s *sharedFile) fmtUrl(serverUrl string) string {
+func (s *sharedFile) fmtShareLink(serverUrl string) string {
 	if s.URL != "" || s.Token == "" {
 		return s.URL
 	}

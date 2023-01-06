@@ -28,14 +28,14 @@ func (l *list) Run() error {
 			}
 
 			relRemote := strings.TrimPrefix(e.Path, l.remoteFile)
-			fmt.Fprintf(w, "%s\t", filepath.Join(l.Path, filepath.FromSlash(relRemote)))
+			suffix := "\t"
+			if e.ItemType == "folder" {
+				suffix = string(filepath.Separator) + suffix
+			}
+			fmt.Fprint(w, filepath.Join(l.Path, filepath.FromSlash(relRemote)), suffix)
 		}
 
-		fmt.Fprintf(w, "%s\t%s", e.ID, e.fmtUrl(l.url))
-		fmt.Fprintf(w, "\t%s", fmtExpiry(e.Expiration))
-		fmt.Fprintf(w, "\t%s", e.fmtNote())
-
-		fmt.Fprintln(w)
+		fmt.Fprintf(w, "%s\t%s\t%s\t%s\n", e.ID, e.fmtShareLink(l.url), fmtExpiry(e.Expiration), e.fmtNote())
 	}
 	return w.Flush()
 }
