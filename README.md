@@ -1,7 +1,7 @@
 nec - Nextcloud command line client
 ===================================
 `nec` is a command line tool for [Nextcloud](https://nextcloud.com/), primary
-for sharing files. At this point in time it's very experimental and not well tested.
+for sharing files.
 
 Installation
 ------------
@@ -17,16 +17,18 @@ the existing configuration and operates on the folders of local filesystem, sync
 with server. nec is made to be cross-platform, tested on Mac OS, Windows and Linux.
 Linux works at least on KDE with kwallet and other libsecret backends.
 
-
 ### Commands
 Most nec commands take local path as an argument, but the actually affected file
 (shared or unshared) is the one on the server, synced to the local one by desktop
 client.
 
-    nec --help
+    $ nec --help
     Usage: nec <command>
 
-    nec is a command line tool for Nextcloud
+    nec is a command line tool for file sharing on Nextcloud. It parses the existing
+    configuration of the official desktop client and operates on the folders of
+    local filesystem, while actually sharing the files that are synced with the
+    server.
 
     Commands:
       share (s)       share a local file
@@ -34,4 +36,9 @@ client.
       list (ls)       list shares of local files
 
     Run "nec <command> --help" for more information on a command.
+
+Issues
+------
+The tool is in the early stage of developent, but should get the job done.
+Please report any bugs or suggestions on the [Github issue tracker](https://github.com/gnojus/nec/issues).
 

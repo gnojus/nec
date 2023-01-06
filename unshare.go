@@ -11,6 +11,13 @@ type unshare struct {
 	ID string `kong:"help='id of share to remove'"`
 }
 
+func (u *unshare) Help() string {
+	return `
+Removes all the shares of a given file.
+Can be narrowed down to single share with the --id flag.
+`
+}
+
 func (u *unshare) Run() error {
 	if u.ID == "" && u.remoteFile == "" {
 		return errors.New("not removing all shares")

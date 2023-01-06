@@ -16,7 +16,7 @@ type share struct {
 	pathConfig
 
 	Clipboard bool   `kong:"help='copy share url into systems clipboard',short=c"`
-	Expire    string `kong:"help='expire date of this share'"`
+	Expire    string `kong:"help='expire date of this share, truncated to days'"`
 	Note      string `kong:"help='note displayed together with the shared file'"`
 	With      string `kong:"help='user to share with',xor=to"`
 	WithGroup string `kong:"help='group to share with',xor=to"`
@@ -30,7 +30,10 @@ func fmtExpiry(expiry string) string {
 }
 
 func (s *share) Help() string {
-	return "long\nhelp"
+	return `
+Shares a file/folder identified by local path.
+By default it's a public share and url with the shared file is printed to stdout.
+`
 }
 
 func (s *share) Run() error {
