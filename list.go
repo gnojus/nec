@@ -15,6 +15,10 @@ type list struct {
 	Recursive bool `kong:"short=r,help='recursively descend into folders'"`
 }
 
+func isSubfile(dir, f string) bool {
+	return dir == "/" || dir == f || strings.HasPrefix(f, dir+"/")
+}
+
 func (l *list) Run() error {
 	shares, err := l.loadShares()
 	if err != nil {
@@ -23,7 +27,7 @@ func (l *list) Run() error {
 	w := tabwriter.NewWriter(os.Stdout, 1, 1, 2, ' ', 0)
 	for _, e := range shares {
 		if l.Recursive {
-			if !strings.HasPrefix(e.Path, l.remoteFile) {
+			if !isSubfile(l.remoteFile, e.Path) {
 				continue
 			}
 
