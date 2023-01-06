@@ -37,6 +37,24 @@ client.
 
     Run "nec <command> --help" for more information on a command.
 
+### Example
+    $ ls
+    api.go  config.go  go.mod  go.sum  LICENSE  list.go  main.go  README.md  share.go  unshare.go
+    $ nec s README.md
+    https://cloud.example.com/s/NB8LiLSgqpSmPxW
+    $ nec share README.md --expire 'in 1 week' --note 'nec readme'
+    share expires on: 2023-01-13
+    https://cloud.example.com/s/DHHLgYxjNmJDsCr
+    $ nec ls README.md
+    65  https://cloud.example.com/s/NB8LiLSgqpSmPxW
+    66  https://cloud.example.com/s/DHHLgYxjNmJDsCr  2023-01-13  nec readme
+    $ nec ls -r .
+    README.md  65  https://cloud.example.com/s/NB8LiLSgqpSmPxW
+    README.md  66  https://cloud.example.com/s/DHHLgYxjNmJDsCr  2023-01-13  nec readme
+    $ nec us --id 65
+    $ nec ls -r .
+    README.md  66  https://cloud.example.com/s/DHHLgYxjNmJDsCr  2023-01-13  nec readme
+
 Issues
 ------
 The tool is in the early stage of developent, but should get the job done.
