@@ -38,7 +38,7 @@ jobs:
           go-version: stable
 
       - name: Build
-        run: go build -v -o nec-$GOOS-$GOARCH${{ matrix.suffix }}
+        run: go build -ldflags "-X main.version=$GITHUB_REF_NAME -X main.repo=$GITHUB_REPOSITORY" -o nec-$GOOS-$GOARCH${{ matrix.suffix }}
 
       - name: Release
         uses: softprops/action-gh-release@v1
