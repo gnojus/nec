@@ -9,6 +9,11 @@ Download prebuilt binaries on [releases](https://github.com/gnojus/nec/releases)
 or build with `go install github.com/gnojus/nec@latest`. Note that CGO
 (`CGO_ENABLED=1`) is required to build with keychain support for Mac OS.
 
+The Github releases also feature self-updating capabilities via `update` command.
+(since `v0.0.11`).
+When building from source updates can be enabled using linker flags:
+`-ldflags "-X main.version=<version> -X main.repo=gnojus/nec"`.
+
 Usage
 -----
 nec is intended to be zero-configuration tool. This means that it works alongside
@@ -34,6 +39,7 @@ client.
       share (s)       share a local file
       unshare (us)    unshare a local file
       list (ls)       list shares of local files
+      update          update nec using github releases if new version available
 
     Run "nec <command> --help" for more information on a command.
 

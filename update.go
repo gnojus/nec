@@ -43,7 +43,7 @@ func (update) Run() error {
 		return fmt.Errorf("fetching latest release: %w", err)
 	}
 	defer req.Body.Close()
-	fmt.Fprintf(os.Stdout, "latest version: %s\n", latest)
+	fmt.Fprintf(os.Stderr, "latest version: %s\n", latest)
 
 	if version == latest {
 		return nil
