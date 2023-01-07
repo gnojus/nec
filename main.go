@@ -43,13 +43,18 @@ func run() error {
 	}
 	debug = cli.Debug
 
-	for _, flags := range k.Model.AllFlags(false) {
-		for _, f := range flags {
+	for _, n := range k.Model.Children {
+		if n.Name == "update" {
+			n.Hidden = version == "" || repo == ""
+		}
+		for _, f := range n.Flags {
 			if f.Name == "help" {
 				f.Hidden = true
 			}
 		}
 	}
+	k.Model.HelpFlag.Hidden = true
+
 	ctx, err := k.Parse(os.Args[1:])
 	if err != nil {
 		return err
@@ -63,6 +68,8 @@ type cli struct {
 	Share   share   `kong:"cmd,aliases=s,help='share a local file'"`
 	Unshare unshare `kong:"cmd,aliases=us,help='unshare a local file'"`
 	List    list    `kong:"cmd,aliases=ls,help='list shares of local files'"`
+
+	Update update `kong:"cmd,help='update nec using github releases if new version available'"`
 
 	Debug bool `kong:"hidden"`
 }

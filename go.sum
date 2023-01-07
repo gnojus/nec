@@ -39,6 +39,8 @@ github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZb
 github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=
 github.com/ppacher/go-dbus-keyring v1.0.1 h1:dM4dMfP5w9MxY+foFHCQiN7izEGpFdKr3tZeMGmvqD0=
 github.com/ppacher/go-dbus-keyring v1.0.1/go.mod h1:JEmkRwBVPBFkOHedAsoZALWmhNJxR/R/ykkFpbEHtGE=
+github.com/staktrace/go-update v0.0.0-20210525161054-fc019945f9a2 h1:kyTDvRL8TyTHOx0aK1PKMPVfkI7rCLDC1nrKF7SYOBc=
+github.com/staktrace/go-update v0.0.0-20210525161054-fc019945f9a2/go.mod h1:yzHsbjWRHVF1vVGsluwqCc2TvogFSx9C8TeBh34cMb0=
 github.com/stretchr/objx v0.1.0/go.mod h1:HFkY916IF+rwdDfMAkV7OtwuqBVzrE8GR6GFx+wExME=
 github.com/stretchr/objx v0.3.0 h1:NGXK3lHquSN08v5vWalVI/L8XU9hdzE/G6xsrze47As=
 github.com/stretchr/testify v1.7.0 h1:nwc3DEeHmmLAfoZucVR881uASk0Mfjw8xYJ99tb5CcY=

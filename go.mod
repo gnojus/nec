@@ -21,6 +21,7 @@ require (
 	github.com/olebedev/when v0.0.0-20221205223600-4d190b02b8d8 // indirect
 	github.com/pkg/errors v0.8.1 // indirect
 	github.com/ppacher/go-dbus-keyring v1.0.1 // indirect
+	github.com/staktrace/go-update v0.0.0-20210525161054-fc019945f9a2 // indirect
 	golang.org/x/sys v0.3.0 // indirect
 	golang.org/x/term v0.3.0 // indirect
 )
