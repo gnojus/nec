@@ -103,7 +103,12 @@ func (c *pathConfig) read(opt bool) error {
 		c.url, c.user = acc.Key(id+`\url`).String(), acc.Key(id+`\dav_user`).String()
 
 		// return just user data if path is empty and optional
-		if c.Path == "" && len(ids) == 1 && opt {
+		if c.Path == "" && opt {
+			// TODO: somehow make this better
+			if len(ids) > 1 {
+				return fmt.Errorf("ambiguous empty path (matches more than one account)")
+			}
+
 			return c.fetchPassword(id)
 		}
 
