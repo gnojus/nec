@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"net/url"
 	"os"
@@ -12,11 +13,18 @@ import (
 type list struct {
 	optPathConfig
 
-	Recursive bool `kong:"short=r,help='recursively descend into folders',xor=opath"`
+	Recursive bool `kong:"short=r,help='recursively descend into folders'"`
 }
 
 func isSubfile(dir, f string) bool {
 	return dir == "/" || dir == f || strings.HasPrefix(f, dir+"/")
+}
+
+func (l *list) AfterApply() error {
+	if l.Path == "" && l.Recursive {
+		return errors.New("omitted path matches all shares, --recursive (-r) is unnecessary")
+	}
+	return nil
 }
 
 func (l *list) Run() error {

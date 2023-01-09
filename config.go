@@ -32,7 +32,7 @@ type pathConfig struct {
 // optPathConfig is like pathConfig, but the Path is optional.
 // If Path is empty, it looks for a single account to match.
 type optPathConfig struct {
-	Path string `arg:"" optional:"" help:"file on local filesystem. Empty matches all files,xor=opath"`
+	Path string `arg:"" optional:"" help:"file on local filesystem. Empty matches all files"`
 	account
 	remoteFile string
 	accounts   []account
