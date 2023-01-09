@@ -75,7 +75,7 @@ func (s *share) Run() error {
 		v.Set("publicUpload", "true")
 	}
 
-	data, err := request[sharedFile](&s.account, "POST", v)
+	data, err := request[sharedFile](s.account, "POST", v)
 	if err != nil {
 		return err
 	}

@@ -3,7 +3,6 @@ package main
 import (
 	"errors"
 	"fmt"
-	"os"
 	"path"
 	"path/filepath"
 	"regexp"
@@ -14,31 +13,29 @@ import (
 	"gopkg.in/ini.v1"
 )
 
-func openConfig() (*os.File, error) {
-	p, err := xdg.SearchConfigFile(filepath.Join("Nextcloud", "nextcloud.cfg"))
-	if err != nil {
-		return nil, fmt.Errorf("locating config file: %w", err)
-	}
-	return os.Open(p)
+func getCfgPath() (string, error) {
+	return xdg.SearchConfigFile(filepath.Join("Nextcloud", "nextcloud.cfg"))
 }
 
-type pathDetails struct {
-	remoteFile string
-	account
+type folder struct {
 	localPath  string
 	targetPath string
 }
 
 type pathConfig struct {
 	Path string `arg:"" help:"file on local filesystem"`
-	pathDetails
+	account
+	remoteFile string
+	accounts   []account
 }
 
 // optPathConfig is like pathConfig, but the Path is optional.
 // If Path is empty, it looks for a single account to match.
 type optPathConfig struct {
-	Path string `arg:"" optional:"" help:"file on local filesystem. Empty matches all files"`
-	pathDetails
+	Path string `arg:"" optional:"" help:"file on local filesystem. Empty matches all files,xor=opath"`
+	account
+	remoteFile string
+	accounts   []account
 }
 
 func (c *optPathConfig) AfterApply() error {
@@ -49,101 +46,101 @@ func (c *pathConfig) AfterApply() (err error) {
 	return c.loadHook(false)
 }
 
-func (c *pathConfig) loadHook(opt bool) (err error) {
-	err = c.readConfig(opt)
+func (c *pathConfig) loadHook(optionalPath bool) (err error) {
+	accounts, folders, err := loadAccounts()
 	if err != nil {
-		return fmt.Errorf("reading config: %w", err)
+		return fmt.Errorf("parsing config: %w", err)
 	}
-	if c.Path != "" {
-		rel, err := filepath.Rel(c.localPath, c.Path)
-		if err != nil {
-			return fmt.Errorf("making path: %w", err)
+	c.accounts = accounts
+	if c.Path == "" {
+		if !optionalPath {
+			return errors.New("empty path")
 		}
-		c.remoteFile = path.Join(c.targetPath, filepath.ToSlash(rel))
+		return nil
+	}
+	c.Path, err = resolveFile(c.Path)
+	if err != nil {
+		return fmt.Errorf("resolving file: %w", err)
 	}
 
-	return nil
+	for i := range accounts {
+		for _, folder := range folders[i] {
+			rel, _ := filepath.Rel(folder.localPath, c.Path)
+			if !strings.HasPrefix(rel, "..") {
+				c.account = accounts[i]
+
+				c.remoteFile = path.Join(folder.targetPath, filepath.ToSlash(rel))
+				return nil
+			}
+		}
+	}
+
+	return fmt.Errorf("file %s is not synced by any account", c.Path)
 }
 
-func (c *pathConfig) readConfig(opt bool) error {
-	if c.Path != "" {
-		p, err := filepath.EvalSymlinks(c.Path)
-		if err != nil {
-			return err
-		}
-		p, err = filepath.Abs(p)
-		if err != nil {
-			return err
-		}
-		c.Path = p
-	} else if !opt {
-		return errors.New("path is empty")
+func resolveFile(fpath string) (string, error) {
+	p, err := filepath.EvalSymlinks(fpath)
+	if err != nil {
+		return "", err
 	}
-	return c.read(opt)
+	return filepath.Abs(p)
 }
 
-func (c *pathConfig) read(opt bool) error {
-	f, err := openConfig()
+func loadAccounts() ([]account, [][]folder, error) {
+	as, fs := []account{}, [][]folder{}
+	p, err := getCfgPath()
 	if err != nil {
-		return err
+		return nil, nil, fmt.Errorf("locating config file: %w", err)
 	}
-	defer f.Close()
-	cfg, err := ini.Load(f)
+	cfg, err := ini.Load(p)
 	if err != nil {
-		return err
+		return nil, nil, fmt.Errorf("reading config file: %w", err)
 	}
-
 	acc := cfg.Section("Accounts")
-	if acc.Name() == "" {
-		return fmt.Errorf("no Accounts section in config")
-	}
-
-	ids := findFolders(acc.KeyStrings())
-	for id, folders := range ids {
-		c.url, c.user = acc.Key(id+`\url`).String(), acc.Key(id+`\dav_user`).String()
-
-		// return just user data if path is empty and optional
-		if c.Path == "" && opt {
-			// TODO: somehow make this better
-			if len(ids) > 1 {
-				return fmt.Errorf("ambiguous empty path (matches more than one account)")
-			}
-
-			return c.fetchPassword(id)
+	for id, folderIDs := range findFolderIDs(acc.KeyStrings()) {
+		account := account{
+			url:  acc.Key(id + `\url`).String(),
+			user: acc.Key(id + `\dav_user`).String(),
+		}
+		if account.url == "" || account.user == "" {
+			return nil, nil, fmt.Errorf("incomplete account information: %+v", account)
+		}
+		folders := []folder{}
+		err := account.fetchPassword(id)
+		if err != nil {
+			return nil, nil, err
 		}
 
-		for _, f := range folders {
-			folder := id + `\Folders\` + f + `\`
-			lpath, err := acc.GetKey(folder + "localPath")
-			if err != nil {
-				return err
+		for _, fID := range folderIDs {
+			fKey := id + `\Folders\` + fID + `\`
+			f := folder{
+				localPath:  filepath.Clean(acc.Key(fKey + "localPath").String()),
+				targetPath: acc.Key(fKey + "targetPath").String(),
 			}
-			tpath, err := acc.GetKey(folder + "targetPath")
-			if err != nil {
-				return err
+			if f.localPath == "" || f.targetPath == "" {
+				return nil, nil, fmt.Errorf("incomplete folder information: %+v", f)
 			}
-
-			c.localPath = filepath.Clean(lpath.String())
-			if c.localPath != "" && strings.HasPrefix(c.Path, c.localPath) {
-				c.targetPath = tpath.String()
-				return c.fetchPassword(id)
-			}
+			folders = append(folders, f)
 		}
+		as = append(as, account)
+		fs = append(fs, folders)
 	}
-
-	return fmt.Errorf("no matching account found")
+	if as == nil {
+		return nil, nil, errors.New("no account found with folder sync configured")
+	}
+	return as, fs, nil
 }
 
-func (c *pathConfig) fetchPassword(id string) error {
+func (a *account) fetchPassword(id string) error {
 	var err error
-	key := fmt.Sprintf("%s:%s/:%s", c.user, c.url, id)
-	c.pass, err = keyring.ReadPassword("Nextcloud", "nec", key)
+	key := fmt.Sprintf("%s:%s/:%s", a.user, a.url, id)
+	a.pass, err = keyring.ReadPassword("Nextcloud", "nec", key)
 	return err
 }
 
 var rFolder = regexp.MustCompile(`([0-9]+)\\Folders\\([0-9]+)\\localPath`)
 
-func findFolders(keys []string) map[string][]string {
+func findFolderIDs(keys []string) map[string][]string {
 	f := make(map[string][]string)
 	for _, key := range keys {
 		m := rFolder.FindStringSubmatch(key)
