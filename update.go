@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"path/filepath"
 	"regexp"
 	"runtime"
 
@@ -48,11 +49,19 @@ func (update) Run() error {
 	if version == latest {
 		return nil
 	}
-	err = selfupdate.Apply(req.Body, selfupdate.Options{})
+	opt := selfupdate.Options{}
+	if runtime.GOOS == "windows" {
+		opt.OldSavePath = filepath.Join(os.TempDir(), "nec.exe.old")
+		os.Remove(opt.OldSavePath)
+	}
+	err = selfupdate.Apply(req.Body, opt)
 	if err != nil {
 		return fmt.Errorf("updating binary: %w", err)
 	}
 
 	fmt.Fprintln(os.Stderr, "successfully updated to", latest)
+	if runtime.GOOS == "windows" {
+		fmt.Fprintf(os.Stderr, "old binary remains at %s\nwill be deleted on the next 'nec update'\n", opt.OldSavePath)
+	}
 	return nil
 }
