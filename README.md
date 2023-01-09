@@ -1,7 +1,9 @@
 nec - Nextcloud command line client
 ===================================
 `nec` is a command line tool for [Nextcloud](https://nextcloud.com/), primary
-for sharing files.
+for sharing files. It's made to be cross-platform, tested on Mac OS, Windows
+and Linux, on Linux working at least on KDE with kwallet and other libsecret
+backends.
 
 Installation
 ------------
@@ -9,7 +11,7 @@ Download prebuilt binaries on [releases](https://github.com/gnojus/nec/releases)
 or build with `go install github.com/gnojus/nec@latest`. Note that CGO
 (`CGO_ENABLED=1`) is required to build with keychain support for Mac OS.
 
-The Github releases also feature self-updating capabilities via `update` command.
+The Github releases also feature self-updating capabilities via `update` command
 (since `v0.0.11`).
 When building from source updates can be enabled using linker flags:
 `-ldflags "-X main.version=<version> -X main.repo=gnojus/nec"`.
@@ -19,8 +21,12 @@ Usage
 nec is intended to be zero-configuration tool. This means that it works alongside
 official [Nextcloud desktop client](https://github.com/nextcloud/desktop/). It parses
 the existing configuration and operates on the folders of local filesystem, synced
-with server. nec is made to be cross-platform, tested on Mac OS, Windows and Linux.
-Linux works at least on KDE with kwallet and other libsecret backends.
+with server. 
+
+This tool does not upload files, it only shares ones that are synced with the server.
+Therefore if you want to share a file that is not synced, you may want to move/copy
+it to a folder that is synchronized and share it from there. The upload will be
+performed by the desktop client.
 
 ### Commands
 Most nec commands take local path as an argument, but the actually affected file
