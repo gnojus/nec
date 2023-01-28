@@ -24,7 +24,7 @@ func (l *list) AfterApply() error {
 	if l.Path == "" && l.Recursive {
 		return errors.New("omitted path matches all shares, --recursive (-r) is unnecessary")
 	}
-	return nil
+	return l.optPathConfig.AfterApply()
 }
 
 func (l *list) Run() error {
