@@ -102,6 +102,9 @@ func loadAccounts() ([]account, [][]folder, error) {
 			url:  acc.Key(id + `\url`).String(),
 			user: acc.Key(id + `\dav_user`).String(),
 		}
+		if account.user == "" {
+			account.user = acc.Key(id + `\webflow_user`).String()
+		}
 		if account.url == "" || account.user == "" {
 			return nil, nil, fmt.Errorf("incomplete account information: %+v", account)
 		}
