@@ -22,6 +22,10 @@ type folder struct {
 	targetPath string
 }
 
+func (f folder) String() string {
+	return fmt.Sprintf("{%s -> %s}", f.localPath, f.targetPath)
+}
+
 type pathConfig struct {
 	Path string `arg:"" help:"file on local filesystem"`
 	account
@@ -62,6 +66,7 @@ func (c *pathConfig) loadHook(optionalPath bool) (err error) {
 	if err != nil {
 		return fmt.Errorf("resolving file: %w", err)
 	}
+	debugf("resolved file: %s", c.Path)
 
 	for i := range accounts {
 		for _, folder := range folders[i] {
@@ -70,8 +75,10 @@ func (c *pathConfig) loadHook(optionalPath bool) (err error) {
 				c.account = accounts[i]
 
 				c.remoteFile = path.Join(folder.targetPath, filepath.ToSlash(rel))
+				debugf("folder %s matches: %s", folder, c.remoteFile)
 				return nil
 			}
+			debugf("folder %s does not match", folder)
 		}
 	}
 
@@ -105,6 +112,7 @@ func loadAccounts() ([]account, [][]folder, error) {
 		if account.user == "" {
 			account.user = acc.Key(id + `\webflow_user`).String()
 		}
+		debugf("account %q for %q", account.user, account.url)
 		if account.url == "" || account.user == "" {
 			return nil, nil, fmt.Errorf("incomplete account information: %+v", account)
 		}
@@ -120,6 +128,7 @@ func loadAccounts() ([]account, [][]folder, error) {
 				localPath:  filepath.Clean(acc.Key(fKey + "localPath").String()),
 				targetPath: acc.Key(fKey + "targetPath").String(),
 			}
+			debugf("account folder %s", f)
 			if f.localPath == "" || f.targetPath == "" {
 				return nil, nil, fmt.Errorf("incomplete folder information: %+v", f)
 			}
@@ -136,14 +145,25 @@ func loadAccounts() ([]account, [][]folder, error) {
 
 func (a *account) fetchPassword(id string) error {
 	var err error
-	key := fmt.Sprintf("%s:%s/:%s", a.user, a.url, id)
+	key := a.user + ":" + a.url
+	if !strings.HasSuffix(key, "/") {
+		key += "/"
+	}
+	if id != "" {
+		key += ":" + id
+	}
+	debugf(`reading password for "%s"`, key)
 	a.pass, err = keyring.ReadPassword("Nextcloud", "nec", key)
+	if err != nil {
+		err = fmt.Errorf(`fetch password: %w`, err)
+	}
 	return err
 }
 
 var rFolder = regexp.MustCompile(`([0-9]+)\\((Multifolders|Folders|FoldersWithPlaceholders)\\[0-9]+)\\localPath`)
 
 func findFolderIDs(keys []string) map[string][]string {
+	debugf("config keys: %s", keys)
 	f := make(map[string][]string)
 	for _, key := range keys {
 		m := rFolder.FindStringSubmatch(key)

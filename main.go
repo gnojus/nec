@@ -2,9 +2,12 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"os"
+	"slices"
 
 	"github.com/alecthomas/kong"
+	"github.com/gnojus/keyring"
 )
 
 const description = `
@@ -28,6 +31,8 @@ func main() {
 }
 
 func run() error {
+	debug = slices.Contains(os.Args, "--debug")
+	keyring.Debug = debug
 	var cli cli
 	k, err := kong.New(&cli,
 		kong.ConfigureHelp(kong.HelpOptions{
@@ -41,7 +46,6 @@ func run() error {
 	if err != nil {
 		panic(err)
 	}
-	debug = cli.Debug
 
 	for _, n := range k.Model.Children {
 		if n.Name == "update" {
@@ -63,6 +67,12 @@ func run() error {
 }
 
 var debug = false
+
+func debugf(format string, args ...any) {
+	if debug {
+		log.Printf("[nec] "+format, args...)
+	}
+}
 
 type cli struct {
 	Share   share   `kong:"cmd,aliases=s,help='share a local file'"`

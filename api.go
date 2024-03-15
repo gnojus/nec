@@ -4,9 +4,9 @@ import (
 	"encoding/xml"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"net/url"
-	"os"
 )
 
 type account struct {
@@ -38,8 +38,9 @@ func request[T any](s account, method string, v url.Values, path ...string) (T, 
 	}
 	defer resp.Body.Close()
 	if debug {
-		fmt.Fprintln(os.Stderr, "server response:")
-		resp.Body = io.NopCloser(io.TeeReader(resp.Body, os.Stderr))
+		debugf("server response:")
+		resp.Body = io.NopCloser(io.TeeReader(resp.Body, log.Writer()))
+		defer log.Writer().Write([]byte{'\n'})
 	}
 
 	err = xml.NewDecoder(resp.Body).Decode(&r)
