@@ -6,7 +6,7 @@ require (
 	github.com/adrg/xdg v0.4.0
 	github.com/alecthomas/kong v0.7.1
 	github.com/atotto/clipboard v0.1.4
-	github.com/gnojus/keyring v1.2.6
+	github.com/gnojus/keyring v1.2.7
 	github.com/olebedev/when v0.0.0-20221205223600-4d190b02b8d8
 	github.com/staktrace/go-update v0.0.0-20210525161054-fc019945f9a2
 	gopkg.in/ini.v1 v1.67.0
