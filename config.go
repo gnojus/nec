@@ -107,10 +107,10 @@ func loadAccounts() ([]account, [][]folder, error) {
 	for id, folderIDs := range findFolderIDs(acc.KeyStrings()) {
 		account := account{
 			url:  acc.Key(id + `\url`).String(),
-			user: acc.Key(id + `\dav_user`).String(),
+			user: acc.Key(id + `\webflow_user`).String(),
 		}
 		if account.user == "" {
-			account.user = acc.Key(id + `\webflow_user`).String()
+			account.user = acc.Key(id + `\dav_user`).String()
 		}
 		debugf("account %q for %q", account.user, account.url)
 		if account.url == "" || account.user == "" {
