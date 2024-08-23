@@ -160,7 +160,7 @@ func (a *account) fetchPassword(id string) error {
 	return err
 }
 
-var rFolder = regexp.MustCompile(`([0-9]+)\\((Multifolders|Folders|FoldersWithPlaceholders)\\[0-9]+)\\localPath`)
+var rFolder = regexp.MustCompile(`([0-9]+)\\((Multifolders|Folders|FoldersWithPlaceholders)\\[^\\]+)\\localPath`)
 
 func findFolderIDs(keys []string) map[string][]string {
 	debugf("config keys: %s", keys)
