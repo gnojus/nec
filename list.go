@@ -76,7 +76,7 @@ func (l *list) Help() string {
 	return `
 Lists all shares with their data ([path], id, url, expiry date) on local file or folder.
 If recursive, it prints the paths, relative to the one passed as argument.
-When no file is supplied, all shares of single account are printed with full server paths.`
+When no file is supplied, shares of all accounts are printed with full server paths.`
 }
 
 // loadShares loads and returns all shared files that matches path from command
